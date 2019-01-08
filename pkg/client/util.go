@@ -25,8 +25,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	dynamic "k8s.io/client-go/deprecated-dynamic"
 	"k8s.io/client-go/discovery"
-	"k8s.io/client-go/dynamic"
 )
 
 // --------------------------------------------------------------------------

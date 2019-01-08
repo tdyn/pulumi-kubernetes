@@ -30,8 +30,8 @@ import (
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/watch"
+	dynamic "k8s.io/client-go/deprecated-dynamic"
 	"k8s.io/client-go/discovery"
-	"k8s.io/client-go/dynamic"
 )
 
 // --------------------------------------------------------------------------

@@ -12,7 +12,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/watch"
-	"k8s.io/client-go/dynamic"
+	dynamic "k8s.io/client-go/deprecated-dynamic"
 )
 
 func Test_Watcher_Interface_Cancel(t *testing.T) {

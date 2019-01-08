@@ -23,7 +23,7 @@ import (
 
 	"github.com/golang/glog"
 	pbempty "github.com/golang/protobuf/ptypes/empty"
-	structpb "github.com/golang/protobuf/ptypes/struct"
+	"github.com/golang/protobuf/ptypes/struct"
 	"github.com/pulumi/pulumi-kubernetes/pkg/await"
 	"github.com/pulumi/pulumi-kubernetes/pkg/client"
 	"github.com/pulumi/pulumi-kubernetes/pkg/openapi"
@@ -32,7 +32,7 @@ import (
 	"github.com/pulumi/pulumi/pkg/resource/provider"
 	"github.com/pulumi/pulumi/pkg/util/contract"
 	"github.com/pulumi/pulumi/pkg/util/rpcutil/rpcerror"
-	pulumirpc "github.com/pulumi/pulumi/sdk/proto/go"
+	"github.com/pulumi/pulumi/sdk/proto/go"
 	"github.com/yudai/gojsondiff"
 	"google.golang.org/grpc/codes"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -40,8 +40,9 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/sets"
+	dynamic "k8s.io/client-go/deprecated-dynamic"
 	"k8s.io/client-go/discovery"
-	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/restmapper"
 	"k8s.io/client-go/tools/clientcmd"
 	clientapi "k8s.io/client-go/tools/clientcmd/api"
 )
@@ -158,7 +159,7 @@ func (k *kubeProvider) Configure(_ context.Context, req *pulumirpc.ConfigureRequ
 	// Cache the discovery information (OpenAPI schema, etc.) so we don't have to retrieve it for
 	// every request.
 	discoCache := client.NewMemcachedDiscoveryClient(disco)
-	mapper := discovery.NewDeferredDiscoveryRESTMapper(discoCache, dynamic.VersionInterfaces)
+	mapper := restmapper.NewDeferredDiscoveryRESTMapper(discoCache)
 	pathresolver := dynamic.LegacyAPIPathResolverFunc
 
 	// Create client pool, reusing one client per API group (e.g., one each for core, extensions,
@@ -377,16 +378,16 @@ func (k *kubeProvider) Diff(
 	// Delete before replacement if we are forced to replace the old object, and the new version of
 	// that object MUST have the same name.
 	deleteBeforeReplace :=
-		// 1. We know resource must be replaced.
-		(len(replaces) > 0 &&
-			// 2. Object is NOT autonamed (i.e., user manually named it, and therefore we can't
-			// auto-generate the name).
+	// 1. We know resource must be replaced.
+		len(replaces) > 0 &&
+		// 2. Object is NOT autonamed (i.e., user manually named it, and therefore we can't
+		// auto-generate the name).
 			!isAutonamed(newInputs) &&
-			// 3. The new, user-specified name is the same as the old name.
+		// 3. The new, user-specified name is the same as the old name.
 			newInputs.GetName() == oldInputs.GetName() &&
-			// 4. The resource is being deployed to the same namespace (i.e., we aren't creating the
-			// object in a new namespace and then deleting the old one).
-			canonicalNamespace(newInputs.GetNamespace()) == canonicalNamespace(oldInputs.GetNamespace()))
+		// 4. The resource is being deployed to the same namespace (i.e., we aren't creating the
+		// object in a new namespace and then deleting the old one).
+			canonicalNamespace(newInputs.GetNamespace()) == canonicalNamespace(oldInputs.GetNamespace())
 
 	return &pulumirpc.DiffResponse{
 		Changes:             hasChanges,
